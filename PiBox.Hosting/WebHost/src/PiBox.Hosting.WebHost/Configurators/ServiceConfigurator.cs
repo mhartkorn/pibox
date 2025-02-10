@@ -3,8 +3,6 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using AspNetCoreRateLimit;
-using Chronos;
-using Chronos.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -13,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
@@ -217,9 +216,7 @@ namespace PiBox.Hosting.WebHost.Configurators
             _serviceCollection.WithLogLevelSwitch(logLevel);
 
             _serviceCollection.AddTransient(typeof(IFactory<>), typeof(Factory<>));
-
-            _serviceCollection.AddDateTimeProvider();
-            _serviceCollection.AddDateTimeOffsetProvider();
+            _serviceCollection.TryAddSingleton(TimeProvider.System);
 
             _serviceCollection.AddMemoryCache();
 
@@ -257,8 +254,8 @@ namespace PiBox.Hosting.WebHost.Configurators
                     }));
                     return new FieldValidationError(propertyName, errorMessage);
                 });
-            var dateTimeProvider = actionContext.HttpContext.RequestServices.GetRequiredService<IDateTimeProvider>();
-            var validationErrorResponse = new ValidationErrorResponse(dateTimeProvider.UtcNow,
+            var dateTimeProvider = actionContext.HttpContext.RequestServices.GetRequiredService<TimeProvider>();
+            var validationErrorResponse = new ValidationErrorResponse(dateTimeProvider.GetUtcNow().DateTime,
                 "One or more validations have failed.", actionContext.HttpContext.TraceIdentifier,
                 fieldValidationErrors);
             return new BadRequestObjectResult(validationErrorResponse);

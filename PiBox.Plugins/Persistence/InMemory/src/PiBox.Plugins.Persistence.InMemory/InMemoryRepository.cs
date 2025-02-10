@@ -1,23 +1,15 @@
 using System.Diagnostics;
-using Chronos.Abstractions;
 using PiBox.Hosting.Abstractions.Exceptions;
 using PiBox.Plugins.Persistence.Abstractions;
 
 namespace PiBox.Plugins.Persistence.InMemory
 {
-    public class InMemoryRepository<TEntity> : IRepository<TEntity>
+    public class InMemoryRepository<TEntity>(TimeProvider timeProvider, InMemoryStore store) : IRepository<TEntity>
         where TEntity : class, IGuidIdentifier
     {
         private readonly ActivitySource _activitySource = new($"{nameof(InMemoryRepository<TEntity>)}<{typeof(TEntity)}>");
-        private readonly List<KeyValuePair<string, object>> _activitySourceTags = new() { new("persistence", "in-memory") };
-        private readonly HashSet<TEntity> _data;
-        private readonly IDateTimeProvider _dateTimeProvider;
-
-        public InMemoryRepository(IDateTimeProvider dateTimeProvider, InMemoryStore store)
-        {
-            _dateTimeProvider = dateTimeProvider;
-            _data = store.GetStore<TEntity>();
-        }
+        private readonly List<KeyValuePair<string, object>> _activitySourceTags = [new("persistence", "in-memory")];
+        private readonly HashSet<TEntity> _data = store.GetStore<TEntity>();
 
         public Task<TEntity> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
@@ -55,7 +47,7 @@ namespace PiBox.Plugins.Persistence.InMemory
                 _activitySourceTags!);
             activity!.AddTag("resource-id", entity.Id);
             if (entity is ICreationDate entityWithCreationData)
-                entityWithCreationData.CreationDate = _dateTimeProvider.UtcNow;
+                entityWithCreationData.CreationDate = timeProvider.GetUtcNow().DateTime;
             _data.Add(entity);
             return Task.FromResult(entity);
         }

@@ -9,21 +9,10 @@
     <PackageVersion Version="9.0.0" Include="AspNetCore.HealthChecks.System" />
     <PackageVersion Version="9.0.0" Include="AspNetCore.HealthChecks.Uris" />
     <PackageVersion Version="9.0.0" Include="AspNetCore.HealthChecks.Hangfire" />
-    <PackageVersion Version="9.0.0" Include="AspNetCore.HealthChecks.MongoDb" />
     <PackageVersion Version="5.0.0" Include="AspNetCoreRateLimit" />
-    <PackageVersion Version="2.2.1" Include="BouncyCastle.NetCore" />
-    <PackageVersion Version="2.0.24" Include="Chronos.Abstractions" />
-    <PackageVersion Version="2.0.24" Include="Chronos.Net" />
     <PackageVersion Version="11.11.0" Include="FluentValidation" />
-    <PackageVersion Version="3.29.3" Include="Google.Protobuf" />
-    <PackageVersion Version="2.46.6" Include="Grpc" />
-    <PackageVersion Version="2.69.0" Include="Grpc.Tools">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageVersion>
     <PackageVersion Version="1.8.17" Include="HangFire" />
     <PackageVersion Version="1.8.1.1" Include="Hangfire.MemoryStorage" />
-    <PackageVersion Version="1.20.10" Include="Hangfire.PostgreSql" />
     <PackageVersion Version="3.1.0" Include="NetEscapades.Configuration.Yaml" />
     <PackageVersion Version="1.9.0-beta.2" Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" />
     <PackageVersion Version="1.9.0" Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
@@ -58,7 +47,6 @@
     </PackageVersion>
     <PackageVersion Version="8.0.12" Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageVersion Version="8.0.12" Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
-    <PackageVersion Version="8.0.12" Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageVersion Version="8.0.12" Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
     <PackageVersion Version="8.0.12" Include="Microsoft.AspNetCore.Authorization" />
     <PackageVersion Version="6.0.4" Include="Minio" />
@@ -69,7 +57,6 @@
     <PackageVersion Version="7.2.0" Include="Swashbuckle.AspNetCore.SwaggerUI" />
     <PackageVersion Version="5.1.0" Include="jose-jwt" />
     <PackageVersion Version="7.0.0" Include="RichardSzalay.MockHttp" />
-    <PackageVersion Version="8.0.11" Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageVersion Version="1.6.4" Include="Restease" />
     <PackageVersion Version="2.4.1" Include="NaughtyStrings.Bogus" />
     <PackageVersion Version="35.4.0" Include="Bogus" />

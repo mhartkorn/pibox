@@ -1,6 +1,5 @@
 using System.Globalization;
 using AspNetCoreRateLimit;
-using Chronos.Abstractions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -19,7 +18,6 @@ using Microsoft.Extensions.Options;
 using NetEscapades.Configuration.Yaml;
 using NUnit.Framework;
 using PiBox.Hosting.Abstractions.Configuration;
-using PiBox.Hosting.Abstractions.DependencyInjection;
 using PiBox.Hosting.Abstractions.Extensions;
 using PiBox.Hosting.Abstractions.Middlewares.Models;
 using PiBox.Hosting.WebHost.Configurators;
@@ -101,9 +99,7 @@ namespace PiBox.Hosting.WebHost.Tests
             endpointDataSources[0].Endpoints[1].As<RouteEndpoint>().RoutePattern.RawText.Should().Be("/health/readiness");
             endpointDataSources[1].GetType().Name.Should().Be("ControllerActionEndpointDataSource");
 
-            var dateTimeProviderFactory = host.Services.GetRequiredService<IFactory<IDateTimeProvider>>();
-            dateTimeProviderFactory.Should().NotBeNull();
-            var dateTimeProvider = dateTimeProviderFactory.Create();
+            var dateTimeProvider = host.Services.GetRequiredService<TimeProvider>();
             dateTimeProvider.Should().NotBeNull();
 
             var logger = host.Services.GetRequiredService<ILogger>();

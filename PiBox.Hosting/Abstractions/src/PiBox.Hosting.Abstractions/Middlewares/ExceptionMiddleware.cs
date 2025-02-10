@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using Chronos.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PiBox.Hosting.Abstractions.Attributes;
 using PiBox.Hosting.Abstractions.Exceptions;
 using PiBox.Hosting.Abstractions.Middlewares.Models;
@@ -9,30 +9,28 @@ using PiBox.Hosting.Abstractions.Middlewares.Models;
 namespace PiBox.Hosting.Abstractions.Middlewares
 {
     [Middleware(int.MinValue)]
-    public sealed class ExceptionMiddleware : ApiMiddleware
+    public sealed class ExceptionMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionMiddleware> logger,
+        GlobalStatusCodeOptions globalStatusCodeOptions,
+        TimeProvider timeProvider)
+        : ApiMiddleware(next)
     {
-        private readonly ILogger _logger;
-        private readonly GlobalStatusCodeOptions _globalStatusCodeOptions;
-
-        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, GlobalStatusCodeOptions globalStatusCodeOptions, IDateTimeProvider dateTimeProvider) : base(next, dateTimeProvider)
-        {
-            _logger = logger;
-            _globalStatusCodeOptions = globalStatusCodeOptions;
-        }
+        private readonly ILogger _logger = logger;
 
         public override async Task Invoke(HttpContext context)
         {
             try
             {
                 await Next.Invoke(context).ConfigureAwait(false);
-                if (_globalStatusCodeOptions.DefaultStatusCodes.Contains(context.Response.StatusCode))
-                    await WriteDefaultResponse(context, context.Response.StatusCode);
+                if (globalStatusCodeOptions.DefaultStatusCodes.Contains(context.Response.StatusCode))
+                    await WriteDefaultResponse(context, context.Response.StatusCode, timeProvider.GetUtcNow().DateTime);
             }
             catch (ValidationPiBoxException validationPiBoxException)
             {
                 Activity.Current?.SetStatus(ActivityStatusCode.Error, validationPiBoxException.Message);
                 _logger.LogInformation(validationPiBoxException, "Validation PiBox Exception occured");
-                var validationErrorResponse = new ValidationErrorResponse(DateTimeProvider.UtcNow,
+                var validationErrorResponse = new ValidationErrorResponse(timeProvider.GetUtcNow().DateTime,
                     validationPiBoxException.Message, context.TraceIdentifier,
                     validationPiBoxException.ValidationErrors);
                 await WriteResponse(context, validationPiBoxException.HttpStatus, validationErrorResponse);
@@ -41,13 +39,15 @@ namespace PiBox.Hosting.Abstractions.Middlewares
             {
                 Activity.Current?.SetStatus(ActivityStatusCode.Error, piBoxException.Message);
                 _logger.LogInformation(piBoxException, "PiBox Exception occured");
-                await WriteDefaultResponse(context, piBoxException.HttpStatus, piBoxException.Message);
+                await WriteDefaultResponse(context, piBoxException.HttpStatus, timeProvider.GetUtcNow().DateTime,
+                    piBoxException.Message);
             }
             catch (Exception e)
             {
                 Activity.Current?.SetStatus(ActivityStatusCode.Error, e.Message);
                 _logger.LogError(e, "Unhandled Exception occured");
-                await WriteDefaultResponse(context, StatusCodes.Status500InternalServerError);
+                await WriteDefaultResponse(context, StatusCodes.Status500InternalServerError,
+                    timeProvider.GetUtcNow().DateTime);
             }
         }
     }

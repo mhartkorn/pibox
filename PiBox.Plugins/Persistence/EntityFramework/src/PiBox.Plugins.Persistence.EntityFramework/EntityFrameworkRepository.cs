@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Chronos.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using PiBox.Hosting.Abstractions.Exceptions;
 using PiBox.Plugins.Persistence.Abstractions;
@@ -11,12 +10,12 @@ namespace PiBox.Plugins.Persistence.EntityFramework
         private readonly ActivitySource _activitySource = new($"{nameof(EntityFrameworkRepository<TEntity>)}<{typeof(TEntity)}>");
         private readonly List<KeyValuePair<string, object>> _activitySourceTags = new() { new("persistence", "entityframework") };
         private readonly IDbContext<TEntity> _dbContext;
-        private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly TimeProvider _timeProvider;
 
-        public EntityFrameworkRepository(IDbContext<TEntity> dbContext, IDateTimeProvider dateTimeProvider)
+        public EntityFrameworkRepository(IDbContext<TEntity> dbContext, TimeProvider timeProvider)
         {
             _dbContext = dbContext;
-            _dateTimeProvider = dateTimeProvider;
+            _timeProvider = timeProvider;
         }
 
         public async Task<TEntity> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -50,7 +49,7 @@ namespace PiBox.Plugins.Persistence.EntityFramework
             using var activity = _activitySource.StartActivity(nameof(AddAsync), kind: ActivityKind.Internal, parentContext: default, _activitySourceTags!);
             entity.Id = Guid.NewGuid();
             if (entity is ICreationDate entityWithCreationData)
-                entityWithCreationData.CreationDate = _dateTimeProvider.UtcNow;
+                entityWithCreationData.CreationDate = _timeProvider.GetUtcNow().DateTime;
             var entry = await _dbContext.GetSet().AddAsync(entity, cancellationToken);
             await _dbContext.GetContext().SaveChangesAsync(cancellationToken);
             return entry.Entity;

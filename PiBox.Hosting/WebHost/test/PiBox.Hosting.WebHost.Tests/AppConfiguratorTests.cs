@@ -1,4 +1,3 @@
-using Chronos.Abstractions;
 using ExternalNamespace.Tests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
@@ -118,7 +117,7 @@ namespace PiBox.Hosting.WebHost.Tests
         [Order(1)]
         private class TestMiddlwareWithOrder1 : ApiMiddleware
         {
-            public TestMiddlwareWithOrder1(RequestDelegate next, IDateTimeProvider dateTimeProvider) : base(next, dateTimeProvider)
+            public TestMiddlwareWithOrder1(RequestDelegate next, TimeProvider dateTimeProvider) : base(next)
             {
             }
 
@@ -131,7 +130,7 @@ namespace PiBox.Hosting.WebHost.Tests
         [Order(3)]
         private class TestMiddlwareWithOrder3 : ApiMiddleware
         {
-            public TestMiddlwareWithOrder3(RequestDelegate next, IDateTimeProvider dateTimeProvider) : base(next, dateTimeProvider)
+            public TestMiddlwareWithOrder3(RequestDelegate next, TimeProvider dateTimeProvider) : base(next)
             {
             }
 
@@ -144,7 +143,7 @@ namespace PiBox.Hosting.WebHost.Tests
         [Order(10)]
         private class TestMiddlwareWithOrder10 : ApiMiddleware
         {
-            public TestMiddlwareWithOrder10(RequestDelegate next, IDateTimeProvider dateTimeProvider) : base(next, dateTimeProvider)
+            public TestMiddlwareWithOrder10(RequestDelegate next, TimeProvider dateTimeProvider) : base(next)
             {
             }
 

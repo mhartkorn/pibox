@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using Chronos.Abstractions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NUnit.Framework;
 using PiBox.Hosting.Abstractions.Middlewares;
@@ -11,7 +11,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
 {
     public class EnrichRequestMetricsMiddlewareTests
     {
-        private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
+        private readonly FakeTimeProvider _timeProvider = new();
 
         private static HttpContext GetContext()
         {
@@ -21,7 +21,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
         [SetUp]
         public void Setup()
         {
-            _dateTimeProvider.UtcNow.Returns(new DateTime(2020, 1, 1));
+            _timeProvider.SetUtcNow(new DateTime(2020, 1, 1));
         }
 
         [Test]
@@ -33,7 +33,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = 200;
                 return Task.CompletedTask;
-            }, _dateTimeProvider);
+            }, _timeProvider);
             var context = GetContext();
 
             context.User = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>() { new Claim("azp", "userid1") }));
@@ -53,7 +53,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = 200;
                 return Task.CompletedTask;
-            }, _dateTimeProvider);
+            }, _timeProvider);
             var context = GetContext();
 
             context.User = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>() { new Claim("azp1", "userid1") }));
@@ -73,7 +73,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = 200;
                 return Task.CompletedTask;
-            }, _dateTimeProvider);
+            }, _timeProvider);
             var context = GetContext();
 
             context.User = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>() { new Claim("azp1", "userid1") }));

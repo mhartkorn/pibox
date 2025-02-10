@@ -1,4 +1,3 @@
-using Chronos.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using PiBox.Hosting.Abstractions.Attributes;
@@ -6,13 +5,9 @@ using PiBox.Hosting.Abstractions.Attributes;
 namespace PiBox.Hosting.Abstractions.Middlewares
 {
     [Middleware]
-    public sealed class EnrichRequestMetricsMiddleware : ApiMiddleware
+    public sealed class EnrichRequestMetricsMiddleware(RequestDelegate next, TimeProvider timeProvider) :
+        ApiMiddleware(next)
     {
-        public EnrichRequestMetricsMiddleware(RequestDelegate next, IDateTimeProvider dateTimeProvider) : base(next,
-            dateTimeProvider)
-        {
-        }
-
         public override Task Invoke(HttpContext context)
         {
             var tagsFeature = context.Features.Get<IHttpMetricsTagsFeature>();

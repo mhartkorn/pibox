@@ -1,9 +1,9 @@
 using System.Net;
-using Chronos.Abstractions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NUnit.Framework;
 using PiBox.Hosting.Abstractions.Middlewares;
@@ -12,7 +12,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
 {
     public class RequestContentLengthLimitMiddlewareTests
     {
-        private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
+        private readonly FakeTimeProvider _timeProvider = new();
 
         private static HttpContext GetContext()
         {
@@ -22,7 +22,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
         [SetUp]
         public void Setup()
         {
-            _dateTimeProvider.UtcNow.Returns(new DateTime(2020, 1, 1));
+            _timeProvider.SetUtcNow(new DateTime(2020, 1, 1));
         }
 
         [Test]
@@ -31,7 +31,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             var requestMaxBodySizeFeature = Substitute.For<IHttpMaxRequestBodySizeFeature>();
             requestMaxBodySizeFeature.MaxRequestBodySize.Returns(8388608);
             var middleware = new RequestContentLengthLimitMiddleware(_ => Task.CompletedTask,
-                NullLogger<RequestContentLengthLimitMiddleware>.Instance, _dateTimeProvider);
+                NullLogger<RequestContentLengthLimitMiddleware>.Instance, _timeProvider);
             var context = GetContext();
             context.Request.Method = WebRequestMethods.Http.Post;
             context.Request.ContentLength = 8388609;
@@ -50,7 +50,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = 200;
                 return Task.CompletedTask;
-            }, NullLogger<RequestContentLengthLimitMiddleware>.Instance, _dateTimeProvider);
+            }, NullLogger<RequestContentLengthLimitMiddleware>.Instance, _timeProvider);
             var context = GetContext();
             context.Request.Method = WebRequestMethods.Http.Post;
             context.Request.ContentLength = 8388609;

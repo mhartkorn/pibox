@@ -1,9 +1,9 @@
 using System.Net;
-using Chronos.Abstractions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
@@ -15,7 +15,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
 {
     public class ExceptionMiddlewareTests
     {
-        private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
+        private readonly FakeTimeProvider _timeProvider = new();
 
         private static HttpContext GetContext()
         {
@@ -39,7 +39,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
         [SetUp]
         public void Setup()
         {
-            _dateTimeProvider.UtcNow.Returns(new DateTime(2020, 1, 1));
+            _timeProvider.SetUtcNow(new DateTime(2020, 1, 1));
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = 401;
                 return Task.CompletedTask;
-            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions(), _dateTimeProvider);
+            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions(), _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             context.Response.StatusCode.Should().Be(401);
@@ -57,7 +57,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             errorResponse.Should().NotBeNull();
             errorResponse.Message.Should().Be("Unauthorized");
             errorResponse.RequestId.Should().Be(context.TraceIdentifier);
-            errorResponse.Timestamp.Should().Be(_dateTimeProvider.UtcNow);
+            errorResponse.Timestamp.Should().Be(_timeProvider.GetUtcNow().DateTime);
         }
 
         [Test]
@@ -67,7 +67,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = 403;
                 return Task.CompletedTask;
-            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions().Clear().Add(HttpStatusCode.Forbidden), _dateTimeProvider);
+            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions().Clear().Add(HttpStatusCode.Forbidden), _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             context.Response.StatusCode.Should().Be(403);
@@ -75,7 +75,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             errorResponse.Should().NotBeNull();
             errorResponse.Message.Should().Be("Forbidden");
             errorResponse.RequestId.Should().Be(context.TraceIdentifier);
-            errorResponse.Timestamp.Should().Be(_dateTimeProvider.UtcNow);
+            errorResponse.Timestamp.Should().Be(_timeProvider.GetUtcNow().DateTime);
         }
 
         [Test]
@@ -85,7 +85,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = 403;
                 return Task.CompletedTask;
-            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions().Clear(), _dateTimeProvider);
+            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions().Clear(), _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             context.Response.StatusCode.Should().Be(403);
@@ -100,7 +100,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = StatusCodes.Status418ImATeapot;
                 return Task.CompletedTask;
-            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions().Remove(401).Remove(HttpStatusCode.InternalServerError).Clear().Add(418), _dateTimeProvider);
+            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions().Remove(401).Remove(HttpStatusCode.InternalServerError).Clear().Add(418), _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             context.Response.StatusCode.Should().Be(418);
@@ -108,7 +108,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             errorResponse.Should().NotBeNull();
             errorResponse.Message.Should().Be("I'm a teapot");
             errorResponse.RequestId.Should().Be(context.TraceIdentifier);
-            errorResponse.Timestamp.Should().Be(_dateTimeProvider.UtcNow);
+            errorResponse.Timestamp.Should().Be(_timeProvider.GetUtcNow().DateTime);
         }
 
         [Test]
@@ -118,7 +118,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
                 x => throw new ValidationPiBoxException("failure", new List<FieldValidationError> { new("x", "1 > x") }),
                 NullLogger<ExceptionMiddleware>.Instance,
                 new GlobalStatusCodeOptions().Clear(),
-                _dateTimeProvider);
+                _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             context.Response.StatusCode.Should().Be(400);
@@ -126,7 +126,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             errorResponse.Should().NotBeNull();
             errorResponse.Message.Should().Be("failure");
             errorResponse.RequestId.Should().Be(context.TraceIdentifier);
-            errorResponse.Timestamp.Should().Be(_dateTimeProvider.UtcNow);
+            errorResponse.Timestamp.Should().Be(_timeProvider.GetUtcNow().DateTime);
             errorResponse.ValidationErrors.Should().HaveCount(1);
             var validationError = errorResponse.ValidationErrors.Single();
             validationError.ValidationMessage.Should().Be("1 > x");
@@ -140,7 +140,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
                 x => throw new PiBoxException("test", 408),
                 NullLogger<ExceptionMiddleware>.Instance,
                 new GlobalStatusCodeOptions().Clear(),
-                _dateTimeProvider);
+                _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             context.Response.StatusCode.Should().Be(408);
@@ -148,13 +148,13 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             errorResponse.Should().NotBeNull();
             errorResponse.Message.Should().Be("test");
             errorResponse.RequestId.Should().Be(context.TraceIdentifier);
-            errorResponse.Timestamp.Should().Be(_dateTimeProvider.UtcNow);
+            errorResponse.Timestamp.Should().Be(_timeProvider.GetUtcNow().DateTime);
         }
 
         [Test]
         public async Task MiddlewareWritesInternalServerErrorOnExceptions()
         {
-            var middleware = new ExceptionMiddleware(_ => throw new Exception("test"), NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions(), _dateTimeProvider);
+            var middleware = new ExceptionMiddleware(_ => throw new Exception("test"), NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions(), _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             context.Response.StatusCode.Should().Be(500);
@@ -162,7 +162,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             errorResponse.Should().NotBeNull();
             errorResponse.Message.Should().Be("Internal Server Error");
             errorResponse.RequestId.Should().Be(context.TraceIdentifier);
-            errorResponse.Timestamp.Should().Be(_dateTimeProvider.UtcNow);
+            errorResponse.Timestamp.Should().Be(_timeProvider.GetUtcNow().DateTime);
         }
 
         [Test]
@@ -172,7 +172,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 x.Response.StatusCode = 200;
                 return Task.CompletedTask;
-            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions(), _dateTimeProvider);
+            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions(), _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             context.Response.StatusCode.Should().Be(200);
@@ -188,7 +188,7 @@ namespace PiBox.Hosting.Abstractions.Tests.Middlewares
             {
                 _.Features.Set(responseFeature);
                 throw new Exception("test");
-            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions(), _dateTimeProvider);
+            }, NullLogger<ExceptionMiddleware>.Instance, new GlobalStatusCodeOptions(), _timeProvider);
             var context = GetContext();
             await middleware.Invoke(context);
             responseFeature.StatusCode.Should().Be(101);

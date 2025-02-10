@@ -1,12 +1,12 @@
 using System.Data;
 using System.Diagnostics;
-using Chronos;
-using Chronos.Abstractions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NUnit.Framework;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -32,7 +32,7 @@ namespace PiBox.Plugins.Persistence.EntityFramework.Tests
         public void ConfigureServicesWorks()
         {
             var sc = new ServiceCollection();
-            sc.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+            sc.TryAddSingleton<TimeProvider, FakeTimeProvider>();
 
             // register dbContext and map as interface
             sc.AddDbContext<TestContext>(o => o.UseInMemoryDatabase("test"), ServiceLifetime.Transient);

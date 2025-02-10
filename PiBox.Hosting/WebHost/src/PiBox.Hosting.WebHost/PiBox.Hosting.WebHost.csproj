@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.System"/>
-    <PackageReference Include="Chronos.Net"/>
     <PackageReference Include="AspNetCoreRateLimit"/>
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore"/>
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>

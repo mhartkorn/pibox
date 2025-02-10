@@ -1,7 +1,7 @@
 using System.Globalization;
-using Chronos.Abstractions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NUnit.Framework;
 using PiBox.Hosting.Abstractions.Exceptions;
@@ -12,11 +12,9 @@ namespace PiBox.Plugins.Persistence.EntityFramework.Tests
 {
     public class EntityFrameworkRepositoryTests
     {
-        private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
-        private TestContext CreateContext(params TestEntity[] testEntities)
+        private static TestContext CreateContext(params TestEntity[] testEntities)
         {
             ActivityTestBootstrapper.Setup();
-            _dateTimeProvider.UtcNow.Returns(DateTime.UtcNow);
             var dbName = Guid.NewGuid().ToString("N");
             var dbOpts = new DbContextOptionsBuilder<TestContext>().UseInMemoryDatabase(dbName).Options;
             var testContext = new TestContext(dbOpts);
@@ -26,8 +24,8 @@ namespace PiBox.Plugins.Persistence.EntityFramework.Tests
             return testContext;
         }
 
-        private IRepository<TestEntity> GetRepository(IDbContext<TestEntity> dbContext) =>
-            new EntityFrameworkRepository<TestEntity>(dbContext, _dateTimeProvider);
+        private static IRepository<TestEntity> GetRepository(IDbContext<TestEntity> dbContext, DateTime? dateTime = null) =>
+            new EntityFrameworkRepository<TestEntity>(dbContext, new FakeTimeProvider(dateTime ?? DateTime.UtcNow));
 
         [Test]
         public async Task FindByIdAsyncWorks()
@@ -94,9 +92,8 @@ namespace PiBox.Plugins.Persistence.EntityFramework.Tests
         public async Task AddAsyncWorks()
         {
             await using var context = CreateContext();
-            var repository = GetRepository(context);
             var creationDate = DateTime.Parse("2020-01-01", CultureInfo.InvariantCulture);
-            _dateTimeProvider.UtcNow.Returns(creationDate);
+            var repository = GetRepository(context, creationDate);
             var entity = new TestEntity(Guid.Empty, "Tester", DateTime.MinValue);
             var result = await repository.AddAsync(entity);
             entity = result;

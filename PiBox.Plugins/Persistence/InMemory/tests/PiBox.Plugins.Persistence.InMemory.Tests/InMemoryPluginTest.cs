@@ -1,7 +1,6 @@
-using Chronos.Abstractions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
+using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using PiBox.Plugins.Persistence.Abstractions;
 using PiBox.Testing;
@@ -20,7 +19,7 @@ namespace PiBox.Plugins.Persistence.InMemory.Tests
         public void CanRegisterGenericRepository()
         {
             var sc = new ServiceCollection();
-            sc.AddSingleton(Substitute.For<IDateTimeProvider>());
+            sc.AddSingleton<TimeProvider, FakeTimeProvider>();
             var plugin = new InMemoryPlugin();
             var expectedServices = new Dictionary<Type, Type>
             {
@@ -33,7 +32,7 @@ namespace PiBox.Plugins.Persistence.InMemory.Tests
         public async Task ReadAndWriteRepositoryAreTheSameData()
         {
             var sc = new ServiceCollection();
-            sc.AddSingleton(Substitute.For<IDateTimeProvider>());
+            sc.AddSingleton<TimeProvider, FakeTimeProvider>();
             var plugin = new InMemoryPlugin();
             plugin.ConfigureServices(sc);
             var sp = sc.BuildServiceProvider();

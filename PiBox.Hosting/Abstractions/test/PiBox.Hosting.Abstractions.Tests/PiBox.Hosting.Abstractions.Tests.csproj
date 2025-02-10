@@ -7,8 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\PiBox.Testing\NUnit\src\PiBox.Testing\PiBox.Testing.csproj" />
-      <ProjectReference Include="..\..\src\PiBox.Hosting.Abstractions\PiBox.Hosting.Abstractions.csproj" />
+        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\..\PiBox.Testing\NUnit\src\PiBox.Testing\PiBox.Testing.csproj" />
+        <ProjectReference Include="..\..\src\PiBox.Hosting.Abstractions\PiBox.Hosting.Abstractions.csproj" />
     </ItemGroup>
 
 </Project>

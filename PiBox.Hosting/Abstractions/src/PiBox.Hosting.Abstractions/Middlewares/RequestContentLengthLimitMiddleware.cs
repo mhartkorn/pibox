@@ -1,5 +1,4 @@
 using System.Net;
-using Chronos.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
@@ -11,16 +10,13 @@ namespace PiBox.Hosting.Abstractions.Middlewares
     /// Configured by UseKestrel(options => options.Limits.MaxRequestBodySize = ?)
     /// </summary>
     [Middleware]
-    public sealed class RequestContentLengthLimitMiddleware : ApiMiddleware
+    public sealed class RequestContentLengthLimitMiddleware(
+        RequestDelegate next,
+        ILogger<RequestContentLengthLimitMiddleware> logger,
+        TimeProvider timeProvider)
+        : ApiMiddleware(next)
     {
-        private readonly ILogger _logger;
-
-        public RequestContentLengthLimitMiddleware(RequestDelegate next,
-            ILogger<RequestContentLengthLimitMiddleware> logger, IDateTimeProvider dateTimeProvider) :
-            base(next, dateTimeProvider)
-        {
-            _logger = logger;
-        }
+        private readonly ILogger _logger = logger;
 
         public override Task Invoke(HttpContext context)
         {
@@ -29,7 +25,7 @@ namespace PiBox.Hosting.Abstractions.Middlewares
                 context.Request.ContentLength > limit)
             {
                 _logger.LogDebug("Request payload is too large (limit:{RequestBodyLimit})", limit);
-                return WriteDefaultResponse(context, StatusCodes.Status413PayloadTooLarge);
+                return WriteDefaultResponse(context, StatusCodes.Status413PayloadTooLarge, timeProvider.GetUtcNow().DateTime);
             }
 
             return Next.Invoke(context);

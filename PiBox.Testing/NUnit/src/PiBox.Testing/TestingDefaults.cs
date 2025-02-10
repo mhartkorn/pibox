@@ -1,5 +1,5 @@
-using Chronos;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using PiBox.Hosting.Abstractions;
 using PiBox.Hosting.Abstractions.DependencyInjection;
 
@@ -10,7 +10,7 @@ namespace PiBox.Testing
         public static ServiceCollection ServiceCollection()
         {
             var sc = new ServiceCollection();
-            sc.AddDateTimeProvider().AddDateTimeOffsetProvider();
+            sc.AddSingleton<TimeProvider, FakeTimeProvider>();
             sc.AddLogging();
             sc.AddTransient(typeof(IFactory<>), typeof(Factory<>));
             sc.AddSingleton<GlobalStatusCodeOptions>();

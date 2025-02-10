@@ -1,11 +1,10 @@
 using System.Security.Claims;
 using System.Security.Principal;
-using Chronos.Abstractions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Session;
 using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
+using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 using PiBox.Testing;
 using Unleash;
@@ -15,7 +14,7 @@ namespace PiBox.Plugins.Management.Unleash.Tests
     [TestFixture]
     public class UnleashMiddlewareTests
     {
-        private readonly IDateTimeProvider _dateTimeProvider = Substitute.For<IDateTimeProvider>();
+        private readonly FakeTimeProvider _dateTimeProvider = new();
         private readonly DateTimeOffset _dateTimeOffset = new(2020, 1, 1, 0, 0, 0, TimeSpan.FromHours(0));
 
         private static HttpContext GetContext()
@@ -26,7 +25,7 @@ namespace PiBox.Plugins.Management.Unleash.Tests
         [SetUp]
         public void Setup()
         {
-            _dateTimeProvider.UtcNow.Returns(_dateTimeOffset.UtcDateTime);
+            _dateTimeProvider.SetUtcNow(_dateTimeOffset.UtcDateTime);
         }
 
         [Test]

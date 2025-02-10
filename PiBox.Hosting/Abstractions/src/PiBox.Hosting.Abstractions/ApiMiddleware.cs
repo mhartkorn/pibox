@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Chronos.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using PiBox.Hosting.Abstractions.Middlewares.Models;
@@ -11,16 +10,9 @@ namespace PiBox.Hosting.Abstractions
     /// No testing needed.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public abstract class ApiMiddleware
+    public abstract class ApiMiddleware(RequestDelegate next)
     {
-        protected RequestDelegate Next { get; }
-        protected IDateTimeProvider DateTimeProvider { get; }
-
-        protected ApiMiddleware(RequestDelegate next, IDateTimeProvider dateTimeProvider)
-        {
-            Next = next;
-            DateTimeProvider = dateTimeProvider;
-        }
+        protected RequestDelegate Next { get; } = next;
 
         public abstract Task Invoke(HttpContext context);
 
@@ -31,8 +23,8 @@ namespace PiBox.Hosting.Abstractions
             return context.Response.WriteAsJsonAsync(result);
         }
 
-        protected Task WriteDefaultResponse(HttpContext context, int statusCode, string message = null) =>
-            WriteResponse(context, statusCode, new ErrorResponse(DateTimeProvider.UtcNow,
+        protected Task WriteDefaultResponse(HttpContext context, int statusCode, DateTime dateTime, string message = null) =>
+            WriteResponse(context, statusCode, new ErrorResponse(dateTime,
                 message ?? ReasonPhrases.GetReasonPhrase(statusCode), context.TraceIdentifier));
     }
 }
