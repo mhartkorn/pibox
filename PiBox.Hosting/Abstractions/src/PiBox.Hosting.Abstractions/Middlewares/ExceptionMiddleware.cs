@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using PiBox.Hosting.Abstractions.Attributes;
 using PiBox.Hosting.Abstractions.Exceptions;
 using PiBox.Hosting.Abstractions.Middlewares.Models;

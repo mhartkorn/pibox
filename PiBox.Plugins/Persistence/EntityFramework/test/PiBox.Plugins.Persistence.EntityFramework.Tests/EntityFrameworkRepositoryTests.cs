@@ -2,7 +2,6 @@ using System.Globalization;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
-using NSubstitute;
 using NUnit.Framework;
 using PiBox.Hosting.Abstractions.Exceptions;
 using PiBox.Plugins.Persistence.Abstractions;

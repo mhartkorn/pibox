@@ -117,7 +117,7 @@ namespace PiBox.Hosting.WebHost.Tests
         [Order(1)]
         private class TestMiddlwareWithOrder1 : ApiMiddleware
         {
-            public TestMiddlwareWithOrder1(RequestDelegate next, TimeProvider dateTimeProvider) : base(next)
+            public TestMiddlwareWithOrder1(RequestDelegate next) : base(next)
             {
             }
 
@@ -130,7 +130,7 @@ namespace PiBox.Hosting.WebHost.Tests
         [Order(3)]
         private class TestMiddlwareWithOrder3 : ApiMiddleware
         {
-            public TestMiddlwareWithOrder3(RequestDelegate next, TimeProvider dateTimeProvider) : base(next)
+            public TestMiddlwareWithOrder3(RequestDelegate next) : base(next)
             {
             }
 
@@ -143,7 +143,7 @@ namespace PiBox.Hosting.WebHost.Tests
         [Order(10)]
         private class TestMiddlwareWithOrder10 : ApiMiddleware
         {
-            public TestMiddlwareWithOrder10(RequestDelegate next, TimeProvider dateTimeProvider) : base(next)
+            public TestMiddlwareWithOrder10(RequestDelegate next) : base(next)
             {
             }
 
