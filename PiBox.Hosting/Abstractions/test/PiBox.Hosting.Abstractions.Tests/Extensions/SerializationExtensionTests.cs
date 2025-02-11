@@ -6,11 +6,19 @@ namespace PiBox.Hosting.Abstractions.Tests.Extensions
 {
     public class SerializationExtensionTests
     {
-        private class Sample
+        private class Sample : IEquatable<Sample>
         {
             // vogen type...
             public HealthCheckTag HealthCheckTag { get; set; }
             public string Name { get; set; }
+
+            // IEquatable
+            public bool Equals(Sample other)
+            {
+                if (other is null) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return HealthCheckTag.Equals(other.HealthCheckTag) && Name == other.Name;
+            }
         }
 
         [Test]
